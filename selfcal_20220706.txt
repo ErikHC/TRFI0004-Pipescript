@@ -1,0 +1,50 @@
+# An identical selfcal process was used on the 2022-03-14 dataset
+# To adapt this, you'll have to change:
+#     (1) Visibilities 
+#     (2) The date of the observation within file names
+# The rest should work across all A-config datasets
+
+### SPLIT DOWNLINK CHANNELS ###
+split(vis="TRFI0004_sb44230396_1_1.60131.65529170139_targets.ms/", 
+    outputvis="20220314_SLDL.ms", spw="10~33", datacolumn="data")
+
+### SELFCAL ###
+# Listobs if you want
+listobs(vis='20230706_SLDL.ms')
+
+# Prelim Clean Image  
+# Adjusted FOV only yields ~4px across the beam! oops!
+tclean(vis='20230706_SLDL.ms',
+    imagename='20230706DL.prelim_clean', datacolumn='data', imsize=6000, 
+    cell=['0.04arcsec'], pblimit=-0.1, gridder='standard', deconvolver='mtmfs', 
+    nterms=2, niter=1000, interactive=True, weighting='briggs', robust=0, 
+    savemodel='modelcolumn')
+# Ran two major cycles with the "top" source masked
+
+# Create selfcal table
+# spw indices were offset by 10 when split!
+# ea23 is at the center of the configuration
+gaincal(vis='20230706_SLDL.ms', 
+    caltable='selfcal_scan_spw.tb', solint='inf', refant='ea23', calmode='p', 
+    gaintype='T', minsnr=0, combine='scan,spw', spw='8~23')
+
+# Still the first but with the other half appended
+# Same caltable!
+gaincal(vis='20230706_SLDL.ms', 
+    caltable='selfcal_scan_spw.tb', solint='inf', refant='ea23', calmode='p', 
+    gaintype='T', minsnr=0, combine='scan,spw', spw='0~7', append=True)
+
+
+# Applying the selfcal table
+# There are 24 spws but the two aggregates will map to X band spws:
+applycal(vis='20230706_SLDL.ms',  
+    gaintable='selfcal_scan_spw.tb', spw='0~7', spwmap=['0, 0, 0, 0, 0, 0, 0, 0'])
+
+# Imaging selfcal data
+tclean(vis='20230706_SLDL.ms',
+    imagename='20230706DL.selfcal_clean', datacolumn='corrected', imsize=6000,
+    cell=['0.04arcsec'], pblimit=-0.1, gridder='standard', deconvolver='mtmfs', 
+    nterms=2, niter=1000, interactive=True, weighting='briggs', robust=0, 
+    savemodel='none')
+# Ran one major cycle
+
