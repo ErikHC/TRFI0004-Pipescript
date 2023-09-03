@@ -6,7 +6,7 @@
 
 ### SPLIT DOWNLINK CHANNELS ###
 split(vis="TRFI0004_sb44230396_1_1.60131.65529170139_targets.ms/", 
-    outputvis="20220314_SLDL.ms", spw="10~33", datacolumn="data")
+    outputvis="20230706_SLDL.ms", spw="10~33", datacolumn="data")
 
 ### SELFCAL ###
 # Listobs if you want
